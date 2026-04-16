@@ -35,6 +35,7 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/resources', label: 'Resources' },
   { href: '/calendar', label: 'Calendar' },
+  { href: '/about', label: 'About' },
 ]
 
 interface AppShellProps {
