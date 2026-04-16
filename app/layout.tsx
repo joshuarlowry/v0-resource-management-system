@@ -2,10 +2,20 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ResourcesProvider } from '@/lib/resources-context'
+import { ThemeRegistry } from '@/components/theme-registry'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const geistSans = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+  display: 'swap',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'CAREER - Resource Library',
@@ -36,11 +46,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-background">
-      <body className="font-sans antialiased">
-        <ResourcesProvider>
-          {children}
-        </ResourcesProvider>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body>
+        <ThemeRegistry>
+          <ResourcesProvider>{children}</ResourcesProvider>
+        </ThemeRegistry>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

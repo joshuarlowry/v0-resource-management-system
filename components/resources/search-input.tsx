@@ -1,44 +1,52 @@
 "use client"
 
 import { Search, X } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import TextField from '@mui/material/TextField'
+import InputAdornment from '@mui/material/InputAdornment'
+import IconButton from '@mui/material/IconButton'
+import type { SxProps, Theme } from '@mui/material/styles'
 
 interface SearchInputProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
-  className?: string
+  sx?: SxProps<Theme>
 }
 
-export function SearchInput({ 
-  value, 
-  onChange, 
+export function SearchInput({
+  value,
+  onChange,
   placeholder = 'Search resources...',
-  className 
+  sx,
 }: SearchInputProps) {
   return (
-    <div className={cn('relative', className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-      <Input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="pl-9 pr-9 bg-card border-border rounded-md"
-      />
-      {value && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-          onClick={() => onChange('')}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
+    <TextField
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      size="small"
+      fullWidth
+      sx={sx}
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search size={16} color="var(--mui-palette-text-secondary)" />
+            </InputAdornment>
+          ),
+          endAdornment: value ? (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                aria-label="Clear search"
+                onClick={() => onChange('')}
+              >
+                <X size={16} />
+              </IconButton>
+            </InputAdornment>
+          ) : null,
+        },
+      }}
+    />
   )
 }

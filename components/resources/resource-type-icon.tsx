@@ -1,66 +1,89 @@
-import { FileText, Video, Link, Calendar, Image, Headphones } from 'lucide-react'
+import { FileText, Video, Link as LinkIcon, Calendar, Image as ImageIcon, Headphones } from 'lucide-react'
+import Box from '@mui/material/Box'
+import type { SxProps, Theme } from '@mui/material/styles'
 import type { ResourceType } from '@/lib/types'
-import { cn } from '@/lib/utils'
 
 const iconMap = {
   document: FileText,
   video: Video,
-  link: Link,
+  link: LinkIcon,
   event: Calendar,
-  image: Image,
+  image: ImageIcon,
   audio: Headphones,
+} as const
+
+/**
+ * Per-type color treatment. Uses theme-palette colors where possible
+ * and falls back to literal hex for the "event" and "image" tints so
+ * the enterprise look stays intact.
+ */
+const colorMap: Record<ResourceType, { fg: string; bg: string }> = {
+  document: { fg: '#3D5B78', bg: 'rgba(61, 91, 120, 0.1)' },
+  video: { fg: '#363940', bg: 'rgba(54, 57, 64, 0.1)' },
+  link: { fg: '#4B6785', bg: 'rgba(75, 103, 133, 0.1)' },
+  event: { fg: '#3D5B78', bg: 'rgba(165, 205, 224, 0.3)' },
+  image: { fg: '#8192A6', bg: 'rgba(129, 146, 166, 0.1)' },
+  audio: { fg: '#4B6785', bg: 'rgba(75, 103, 133, 0.1)' },
 }
 
-const colorMap = {
-  document: 'text-[#3D5B78] bg-[#3D5B78]/10',
-  video: 'text-[#363940] bg-[#363940]/10',
-  link: 'text-[#4B6785] bg-[#4B6785]/10',
-  event: 'text-[#3D5B78] bg-[#A5CDE0]/30',
-  image: 'text-[#8192A6] bg-[#8192A6]/10',
-  audio: 'text-[#4B6785] bg-[#4B6785]/10',
-}
+const boxSizes = {
+  sm: { size: 24, pad: 0.5, icon: 16 },
+  md: { size: 32, pad: 0.75, icon: 20 },
+  lg: { size: 40, pad: 1, icon: 24 },
+} as const
 
 interface ResourceTypeIconProps {
   type: ResourceType
   size?: 'sm' | 'md' | 'lg'
   showBackground?: boolean
-  className?: string
+  sx?: SxProps<Theme>
+  color?: string
 }
 
-export function ResourceTypeIcon({ 
-  type, 
-  size = 'md', 
+export function ResourceTypeIcon({
+  type,
+  size = 'md',
   showBackground = true,
-  className 
+  sx,
+  color,
 }: ResourceTypeIconProps) {
   const Icon = iconMap[type]
-  
-  const sizeClasses = {
-    sm: showBackground ? 'h-6 w-6 p-1' : 'h-4 w-4',
-    md: showBackground ? 'h-8 w-8 p-1.5' : 'h-5 w-5',
-    lg: showBackground ? 'h-10 w-10 p-2' : 'h-6 w-6',
-  }
+  const dims = boxSizes[size]
+  const palette = colorMap[type]
 
-  const iconSizes = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6',
-  }
-
-  if (showBackground) {
+  if (!showBackground) {
     return (
-      <div className={cn(
-        'rounded-md flex items-center justify-center',
-        sizeClasses[size],
-        colorMap[type],
-        className
-      )}>
-        <Icon className={iconSizes[size]} />
-      </div>
+      <Box
+        component={Icon}
+        sx={{
+          width: dims.icon,
+          height: dims.icon,
+          color: color ?? palette.fg,
+          flexShrink: 0,
+          ...sx,
+        }}
+      />
     )
   }
 
-  return <Icon className={cn(iconSizes[size], colorMap[type].split(' ')[0], className)} />
+  return (
+    <Box
+      sx={{
+        width: dims.size,
+        height: dims.size,
+        borderRadius: 1,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: palette.fg,
+        bgcolor: palette.bg,
+        flexShrink: 0,
+        ...sx,
+      }}
+    >
+      <Icon size={dims.icon} />
+    </Box>
+  )
 }
 
 export function getResourceTypeLabel(type: ResourceType): string {

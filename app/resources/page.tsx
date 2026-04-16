@@ -3,24 +3,31 @@
 import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import { X, ArrowLeft, Search } from 'lucide-react'
 import { useResources } from '@/lib/resources-context'
 import { AppShell } from '@/components/resources/app-shell'
 import { SearchInput } from '@/components/resources/search-input'
 import { FilterBar } from '@/components/resources/filter-bar'
 import { ResourceCard } from '@/components/resources/resource-card'
-import { Button } from '@/components/ui/button'
-import { X, ArrowLeft } from 'lucide-react'
 import type { ResourceType } from '@/lib/types'
 
 export default function BrowsePage() {
   return (
-    <Suspense fallback={
-      <AppShell title="Browse Resources">
-        <div className="bg-card rounded-md shadow-sm p-16 text-center">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Loading...</p>
-        </div>
-      </AppShell>
-    }>
+    <Suspense
+      fallback={
+        <AppShell title="Browse Resources">
+          <Paper sx={{ p: 8, textAlign: 'center' }}>
+            <Typography variant="overline" sx={{ color: 'text.secondary' }}>Loading...</Typography>
+          </Paper>
+        </AppShell>
+      }
+    >
       <BrowsePageContent />
     </Suspense>
   )
@@ -30,7 +37,7 @@ function BrowsePageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { getResourcesWithRelations, tags, badges, courses, colorVariants, getColorVariant } = useResources()
-  
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTypes, setSelectedTypes] = useState<ResourceType[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -38,17 +45,13 @@ function BrowsePageContent() {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([])
   const [starredOnly, setStarredOnly] = useState(false)
 
-  // Handle URL search params for tag filtering
   const tagParam = searchParams.get('tag')
-  
+
   useEffect(() => {
-    if (tagParam) {
-      setSelectedTags([tagParam])
-    }
+    if (tagParam) setSelectedTags([tagParam])
   }, [tagParam])
 
-  // Get the active category tag for banner display
-  const activeCategoryTag = tagParam ? tags.find(t => t.id === tagParam) : null
+  const activeCategoryTag = tagParam ? tags.find((t) => t.id === tagParam) : null
   const activeCategoryColor = activeCategoryTag ? getColorVariant(activeCategoryTag.colorVariantId) : null
 
   const clearCategoryFilter = () => {
@@ -59,133 +62,93 @@ function BrowsePageContent() {
   const resources = getResourcesWithRelations()
 
   const filteredResources = useMemo(() => {
-    return resources.filter(resource => {
-      // Search query - matches title, description, tags, badges, courses
+    return resources.filter((resource) => {
       if (searchQuery) {
-        const query = searchQuery.toLowerCase()
-        const matchesTitle = resource.title.toLowerCase().includes(query)
-        const matchesDescription = resource.description.toLowerCase().includes(query)
-        const matchesTags = resource.tags.some(tagId => {
-          const tag = tags.find(t => t.id === tagId)
-          return tag?.name.toLowerCase().includes(query)
-        })
-        const matchesBadges = resource.linkedBadges.some(badge => 
-          badge.name.toLowerCase().includes(query)
+        const q = searchQuery.toLowerCase()
+        const hitTitle = resource.title.toLowerCase().includes(q)
+        const hitDesc = resource.description.toLowerCase().includes(q)
+        const hitTag = resource.tags.some((tagId) => tags.find((t) => t.id === tagId)?.name.toLowerCase().includes(q))
+        const hitBadge = resource.linkedBadges.some((b) => b.name.toLowerCase().includes(q))
+        const hitCourse = resource.linkedCourses.some(
+          (c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
         )
-        const matchesCourses = resource.linkedCourses.some(course => 
-          course.name.toLowerCase().includes(query) || 
-          course.code.toLowerCase().includes(query)
-        )
-        
-        if (!matchesTitle && !matchesDescription && !matchesTags && !matchesBadges && !matchesCourses) {
-          return false
-        }
+        if (!hitTitle && !hitDesc && !hitTag && !hitBadge && !hitCourse) return false
       }
-
-      // Type filter
-      if (selectedTypes.length > 0 && !selectedTypes.includes(resource.type)) {
-        return false
-      }
-
-      // Tag filter
-      if (selectedTags.length > 0 && !selectedTags.some(tagId => resource.tags.includes(tagId))) {
-        return false
-      }
-
-      // Badge filter
-      if (selectedBadges.length > 0 && !selectedBadges.some(badgeId => 
-        resource.linkedBadges.some(b => b.id === badgeId)
-      )) {
-        return false
-      }
-
-      // Course filter
-      if (selectedCourses.length > 0 && !selectedCourses.some(courseId => 
-        resource.linkedCourses.some(c => c.id === courseId)
-      )) {
-        return false
-      }
-
-      // Starred filter
-      if (starredOnly && !resource.isStarred) {
-        return false
-      }
-
+      if (selectedTypes.length > 0 && !selectedTypes.includes(resource.type)) return false
+      if (selectedTags.length > 0 && !selectedTags.some((id) => resource.tags.includes(id))) return false
+      if (selectedBadges.length > 0 && !selectedBadges.some((id) => resource.linkedBadges.some((b) => b.id === id))) return false
+      if (selectedCourses.length > 0 && !selectedCourses.some((id) => resource.linkedCourses.some((c) => c.id === id))) return false
+      if (starredOnly && !resource.isStarred) return false
       return true
     })
   }, [resources, searchQuery, selectedTypes, selectedTags, selectedBadges, selectedCourses, starredOnly, tags])
 
-  // Sort to show starred items first
-  const sortedResources = useMemo(() => {
-    return [...filteredResources].sort((a, b) => {
-      if (a.isStarred && !b.isStarred) return -1
-      if (!a.isStarred && b.isStarred) return 1
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    })
-  }, [filteredResources])
+  const sortedResources = useMemo(
+    () =>
+      [...filteredResources].sort((a, b) => {
+        if (a.isStarred && !b.isStarred) return -1
+        if (!a.isStarred && b.isStarred) return 1
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      }),
+    [filteredResources]
+  )
 
   return (
-    <AppShell title={activeCategoryTag ? `${activeCategoryTag.name} Resources` : "Browse Resources"}>
-      <div className="space-y-6">
-        {/* Category Filter Banner */}
+    <AppShell title={activeCategoryTag ? `${activeCategoryTag.name} Resources` : 'Browse Resources'}>
+      <Stack spacing={3}>
         {activeCategoryTag && (
-          <div 
-            className="rounded-md p-4 flex flex-wrap items-center justify-between gap-3"
-            style={{ 
-              backgroundColor: activeCategoryColor?.background || '#3D5B78',
+          <Box
+            sx={{
+              borderRadius: 1,
+              p: 2,
+              bgcolor: activeCategoryColor?.background || '#3D5B78',
+              color: activeCategoryColor?.text || '#fff',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5,
             }}
           >
-            <div className="flex items-center gap-3">
-              <Link href="/">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 hover:bg-white/20"
-                  style={{ color: activeCategoryColor?.text || '#fff' }}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <div>
-                <h2 
-                  className="font-bold text-sm uppercase tracking-wider"
-                  style={{ color: activeCategoryColor?.text || '#fff' }}
-                >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <IconButton
+                component={Link}
+                href="/"
+                sx={{ color: 'inherit', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
+                aria-label="Back home"
+              >
+                <ArrowLeft size={16} />
+              </IconButton>
+              <Box>
+                <Typography variant="overline" component="h2" sx={{ color: 'inherit', display: 'block' }}>
                   {activeCategoryTag.name}
-                </h2>
-                <p 
-                  className="text-xs opacity-80"
-                  style={{ color: activeCategoryColor?.text || '#fff' }}
-                >
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.8 }}>
                   Showing all resources in this category
-                </p>
-              </div>
-            </div>
+                </Typography>
+              </Box>
+            </Stack>
             <Button
-              variant="ghost"
-              size="sm"
+              size="small"
+              variant="text"
+              startIcon={<X size={12} />}
               onClick={clearCategoryFilter}
-              className="gap-1 text-xs hover:bg-white/20"
-              style={{ color: activeCategoryColor?.text || '#fff' }}
+              sx={{ color: 'inherit', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
             >
-              <X className="h-3 w-3" />
               Clear Filter
             </Button>
-          </div>
+          </Box>
         )}
 
-        {/* Search Bar */}
-        <div className="bg-card rounded-md py-2 px-4 shadow-sm">
-          <SearchInput 
+        <Paper sx={{ py: 1, px: 2 }}>
+          <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
             placeholder="Search by name, tags, badges, courses..."
-            className="w-full"
           />
-        </div>
+        </Paper>
 
-        {/* Filters */}
-        <div className="bg-card rounded-md py-2 px-4 shadow-sm">
+        <Paper sx={{ py: 1.5, px: 2 }}>
           <FilterBar
             selectedTypes={selectedTypes}
             onTypesChange={setSelectedTypes}
@@ -202,43 +165,63 @@ function BrowsePageContent() {
             courses={courses}
             colorVariants={colorVariants}
           />
-        </div>
+        </Paper>
 
-        {/* Results Count */}
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] uppercase tracking-wider text-[#8192A6]">
-            {sortedResources.length} RESOURCES FOUND
-            {searchQuery && (
-              <span> FOR &ldquo;{searchQuery}&rdquo;</span>
-            )}
-          </p>
-        </div>
+        <Typography
+          variant="caption"
+          sx={{
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'secondary.main',
+            fontSize: '0.6875rem',
+          }}
+        >
+          {sortedResources.length} RESOURCES FOUND
+          {searchQuery && ` FOR "${searchQuery}"`}
+        </Typography>
 
-        {/* Resource Grid */}
         {sortedResources.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sortedResources.map(resource => (
-              <ResourceCard 
-                key={resource.id} 
-                resource={resource} 
-                tags={tags}
-              />
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                lg: 'repeat(3, 1fr)',
+                xl: 'repeat(4, 1fr)',
+              },
+            }}
+          >
+            {sortedResources.map((resource) => (
+              <ResourceCard key={resource.id} resource={resource} tags={tags} />
             ))}
-          </div>
+          </Box>
         ) : (
-          <div className="bg-card rounded-md shadow-sm p-16 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4 w-fit mx-auto">
-              <svg className="h-8 w-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-1 text-card-foreground">No resources found</h3>
-            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+          <Paper sx={{ p: 8, textAlign: 'center' }}>
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                bgcolor: 'grey.100',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 2,
+              }}
+            >
+              <Search size={32} color="var(--mui-palette-text-secondary)" />
+            </Box>
+            <Typography variant="overline" component="h3" sx={{ display: 'block', mb: 0.5 }}>
+              No resources found
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', maxWidth: 360, mx: 'auto' }}>
               Try adjusting your search or filters to find what you&apos;re looking for.
-            </p>
-          </div>
+            </Typography>
+          </Paper>
         )}
-      </div>
+      </Stack>
     </AppShell>
   )
 }

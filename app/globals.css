@@ -1,132 +1,26 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+/*
+ * Minimal global CSS. MUI's CssBaseline handles the rest (body bg,
+ * typography resets, box-sizing). We keep only baseline scrollbar
+ * and focus behavior here.
+ */
 
-@custom-variant dark (&:is(.dark *));
-
-:root {
-  /* Enterprise Dashboard Color Palette */
-  --background: #F0F2F5;
-  --foreground: #1A2634;
-  
-  --card: #ffffff;
-  --card-foreground: #1A2634;
-  
-  --popover: #ffffff;
-  --popover-foreground: #1A2634;
-  
-  /* Primary - Dark navy from top nav */
-  --primary: #1A2634;
-  --primary-foreground: #ffffff;
-  
-  /* Secondary - Muted blue-gray */
-  --secondary: #8192A6;
-  --secondary-foreground: #ffffff;
-  
-  --muted: #E8EAED;
-  --muted-foreground: #4B6785;
-  
-  /* Accent - Page subheader blue */
-  --accent: #3D5B78;
-  --accent-foreground: #ffffff;
-  
-  --destructive: #DC2626;
-  --destructive-foreground: #ffffff;
-  
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #3D5B78;
-  
-  /* Custom enterprise colors */
-  --nav-bg: #1A2634;
-  --sidebar-bg: #2C313C;
-  --page-header-bg: #3D5B78;
-  --card-header-bg: #8192A6;
-  
-  /* Banner colors */
-  --banner-dark: #363940;
-  --banner-light: #A5CDE0;
-  --banner-mid: #4B6785;
-  
-  /* Chart colors - enterprise palette */
-  --chart-1: #3D5B78;
-  --chart-2: #A5CDE0;
-  --chart-3: #363940;
-  --chart-4: #8192A6;
-  --chart-5: #4B6785;
-  
-  /* Featured/starred highlight */
-  --featured: #A5CDE0;
-  --featured-border: #3D5B78;
-  
-  --radius: 0.375rem;
-  
-  --sidebar: #2C313C;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #3D5B78;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #363940;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #363940;
-  --sidebar-ring: #3D5B78;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
-@theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  
-  /* Custom enterprise theme colors */
-  --color-nav-bg: var(--nav-bg);
-  --color-sidebar-bg: var(--sidebar-bg);
-  --color-page-header-bg: var(--page-header-bg);
-  --color-card-header-bg: var(--card-header-bg);
-  --color-banner-dark: var(--banner-dark);
-  --color-banner-light: var(--banner-light);
-  --color-banner-mid: var(--banner-mid);
-  --color-featured: var(--featured);
-  --color-featured-border: var(--featured-border);
+#__next,
+body > div:first-child {
+  min-height: 100%;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+/* Hide scrollbar utility used by the featured-resources carousel */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

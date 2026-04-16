@@ -1,23 +1,25 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Settings, Save } from 'lucide-react'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import Button from '@mui/material/Button'
+import Divider from '@mui/material/Divider'
 import { AppShell } from '@/components/resources/app-shell'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { useResources } from '@/lib/resources-context'
 
 export default function AdminSettingsPage() {
   const { siteSettings, updateSiteSettings, isLoading } = useResources()
-  
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // Sync local state with context when loaded
   useEffect(() => {
     if (!isLoading) {
       setTitle(siteSettings.title)
@@ -41,123 +43,139 @@ export default function AdminSettingsPage() {
   if (isLoading) {
     return (
       <AppShell title="Admin Settings">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground text-sm uppercase tracking-wider">Loading...</p>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 256 }}>
+          <Typography variant="overline" sx={{ color: 'text.secondary' }}>Loading...</Typography>
+        </Box>
       </AppShell>
     )
   }
 
   return (
     <AppShell title="Admin Settings">
-      <div className="space-y-6 max-w-2xl">
-        {/* Site Settings Card */}
-        <div className="bg-card rounded-md shadow-sm overflow-hidden">
-          <div className="bg-[#8192A6] py-2 px-4">
-            <span className="text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 justify-center">
-              <Settings className="h-4 w-4" />
-              Site Configuration
-            </span>
-          </div>
-          
-          <div className="p-6 space-y-6">
-            {/* Site Title */}
-            <div className="space-y-2">
-              <Label htmlFor="siteTitle" className="text-xs uppercase tracking-wider font-bold text-card-foreground">
-                Site Title
-              </Label>
-              <Input
-                id="siteTitle"
+      <Stack spacing={3} sx={{ maxWidth: 640 }}>
+        <Paper sx={{ overflow: 'hidden' }}>
+          <Box sx={{ bgcolor: 'cardHeader.main', py: 1, px: 2 }}>
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ color: 'common.white' }}>
+              <Settings size={16} />
+              <Typography variant="overline" sx={{ color: 'inherit' }}>Site Configuration</Typography>
+            </Stack>
+          </Box>
+
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <Box>
+              <TextField
+                label="Site Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter site title"
-                className="bg-card border-border rounded-md"
+                size="small"
+                fullWidth
+                helperText="The site title appears in the top navigation bar and browser tab."
               />
-              <p className="text-[11px] text-muted-foreground">
-                The site title appears in the top navigation bar and browser tab.
-              </p>
-            </div>
+            </Box>
 
-            {/* Site Description */}
-            <div className="space-y-2">
-              <Label htmlFor="siteDescription" className="text-xs uppercase tracking-wider font-bold text-card-foreground">
-                Site Description
-              </Label>
-              <Textarea
-                id="siteDescription"
+            <Box>
+              <TextField
+                label="Site Description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter site description"
-                className="bg-card border-border rounded-md resize-none"
+                size="small"
+                fullWidth
+                multiline
                 rows={3}
+                helperText="Used for SEO and meta descriptions."
               />
-              <p className="text-[11px] text-muted-foreground">
-                Used for SEO and meta descriptions.
-              </p>
-            </div>
+            </Box>
 
-            {/* Save Button */}
-            <div className="flex items-center gap-4 pt-4 border-t border-border">
-              <Button 
-                onClick={handleSave}
+            <Divider />
+
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Button
+                variant="contained"
                 disabled={isSaving}
-                className="gap-2 text-xs uppercase tracking-wider bg-[#3D5B78] hover:bg-[#4B6785] text-white rounded-md"
+                onClick={handleSave}
+                startIcon={<Save size={16} />}
+                sx={{ bgcolor: 'accent.main', '&:hover': { bgcolor: 'accent.dark' } }}
               >
-                <Save className="h-4 w-4" />
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
-              
               {showSuccess && (
-                <span className="text-xs uppercase tracking-wider text-green-600">
+                <Typography variant="overline" sx={{ color: 'success.main' }}>
                   Settings saved successfully
-                </span>
+                </Typography>
               )}
-            </div>
-          </div>
-        </div>
+            </Stack>
+          </Stack>
+        </Paper>
 
-        {/* Info Card */}
-        <div className="bg-[#A5CDE0]/20 rounded-md border border-[#3D5B78]/30 p-4">
-          <p className="text-xs text-[#3D5B78]">
-            <strong className="uppercase tracking-wider">Note:</strong> These settings are stored in-memory for demonstration purposes. 
-            Changes will reset when the page is refreshed. In production, these would be persisted to a database.
-          </p>
-        </div>
+        <Box
+          sx={{
+            bgcolor: 'rgba(165, 205, 224, 0.2)',
+            border: '1px solid',
+            borderColor: 'rgba(61, 91, 120, 0.3)',
+            borderRadius: 1,
+            p: 2,
+          }}
+        >
+          <Typography variant="caption" sx={{ color: 'accent.main' }}>
+            <Box component="strong" sx={{ textTransform: 'uppercase', letterSpacing: '0.08em' }}>Note:</Box>{' '}
+            These settings are stored in-memory for demonstration purposes. Changes will reset when the page is
+            refreshed. In production, these would be persisted to a database.
+          </Typography>
+        </Box>
 
-        {/* Quick Links */}
-        <div className="bg-card rounded-md shadow-sm overflow-hidden">
-          <div className="bg-[#8192A6] py-2 px-4">
-            <span className="text-white text-xs font-bold uppercase tracking-wider block text-center">
+        <Paper sx={{ overflow: 'hidden' }}>
+          <Box sx={{ bgcolor: 'cardHeader.main', py: 1, px: 2 }}>
+            <Typography variant="overline" sx={{ color: 'common.white', display: 'block', textAlign: 'center' }}>
               Quick Links
-            </span>
-          </div>
-          
-          <div className="p-4 grid grid-cols-2 gap-3">
-            <a 
-              href="/admin/resources"
-              className="flex flex-col items-center justify-center p-4 rounded-md bg-slate-100 hover:bg-[#8192A6] hover:text-white transition-colors group"
-            >
-              <span className="text-xs uppercase tracking-wider font-medium text-slate-600 group-hover:text-white">
-                Manage Resources
-              </span>
-              <span className="text-[10px] text-slate-500 group-hover:text-white/80">
-                Add, edit, and organize resources
-              </span>
-            </a>
-            <a 
-              href="/admin/tags"
-              className="flex flex-col items-center justify-center p-4 rounded-md bg-slate-100 hover:bg-[#8192A6] hover:text-white transition-colors group"
-            >
-              <span className="text-xs uppercase tracking-wider font-medium text-slate-600 group-hover:text-white">
-                Manage Tags
-              </span>
-              <span className="text-[10px] text-slate-500 group-hover:text-white/80">
-                Configure tags and color palette
-              </span>
-            </a>
-          </div>
-        </div>
-      </div>
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              p: 2,
+              display: 'grid',
+              gap: 1.5,
+              gridTemplateColumns: 'repeat(2, 1fr)',
+            }}
+          >
+            <QuickLink href="/admin/resources" title="Manage Resources" subtitle="Add, edit, and organize resources" />
+            <QuickLink href="/admin/tags" title="Manage Tags" subtitle="Configure tags and color palette" />
+          </Box>
+        </Paper>
+      </Stack>
     </AppShell>
+  )
+}
+
+function QuickLink({ href, title, subtitle }: { href: string; title: string; subtitle: string }) {
+  return (
+    <Box
+      component={Link}
+      href={href}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2,
+        borderRadius: 1,
+        bgcolor: 'grey.100',
+        textDecoration: 'none',
+        color: 'text.secondary',
+        transition: 'all 0.15s',
+        '&:hover': {
+          bgcolor: 'secondary.main',
+          color: 'common.white',
+        },
+      }}
+    >
+      <Typography variant="overline" sx={{ color: 'inherit', fontWeight: 600 }}>
+        {title}
+      </Typography>
+      <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.8, fontSize: '0.625rem' }}>
+        {subtitle}
+      </Typography>
+    </Box>
   )
 }

@@ -1,28 +1,36 @@
 "use client"
 
-import { useState } from 'react'
+import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  Settings, 
+import {
+  Settings,
   LayoutGrid,
   User,
   FolderOpen,
   Tags,
-  Menu,
-  X,
+  Menu as MenuIcon,
+  X as CloseIcon,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Avatar from '@mui/material/Avatar'
+import Collapse from '@mui/material/Collapse'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import { useResources } from '@/lib/resources-context'
 
-// Admin-only sidebar items (hidden in user context, shown for admins)
 const sidebarItems = [
   { href: '/admin', icon: Settings, label: 'Settings' },
   { href: '/admin/resources', icon: FolderOpen, label: 'Manage Resources' },
   { href: '/admin/tags', icon: Tags, label: 'Manage Tags' },
 ]
 
-// Top navigation for all users
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/resources', label: 'Resources' },
@@ -37,146 +45,247 @@ interface AppShellProps {
 export function AppShell({ children, title }: AppShellProps) {
   const pathname = usePathname()
   const { siteSettings } = useResources()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const muiTheme = useTheme()
+  const isDesktop = useMediaQuery(muiTheme.breakpoints.up('md'))
 
   const isActive = (href: string) => {
-    // Exact match for root and admin settings
     if (href === '/' || href === '/admin') return pathname === href
-    // Prefix match for other routes
     return pathname.startsWith(href)
   }
 
-  const isAdminRoute = pathname.startsWith('/admin')
-
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Top Navbar */}
-      <header className="h-14 bg-[#1A2634] flex items-center justify-between px-4 shrink-0 z-30 relative">
-        <div className="flex items-center gap-3">
-          <LayoutGrid className="h-6 w-6 text-white" />
-          <span className="text-white font-bold text-lg tracking-widest">{siteSettings.title}</span>
-        </div>
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Top nav */}
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{ bgcolor: 'navBg.main', height: 56, zIndex: (t) => t.zIndex.appBar }}
+      >
+        <Toolbar sx={{ minHeight: '56px !important', px: 2, justifyContent: 'space-between' }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <LayoutGrid size={24} color="#ffffff" />
+            <Typography
+              sx={{
+                color: 'common.white',
+                fontWeight: 700,
+                fontSize: '1.125rem',
+                letterSpacing: '0.15em',
+              }}
+            >
+              {siteSettings.title}
+            </Typography>
+          </Stack>
 
-        <div className="flex items-center gap-4">
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-4">
-            {navLinks.map(link => (
-              <Link
+          <Stack direction="row" spacing={2} alignItems="center">
+            {/* Desktop nav */}
+            <Stack direction="row" spacing={2} sx={{ display: { xs: 'none', md: 'flex' } }}>
+              {navLinks.map((link) => {
+                const active = isActive(link.href)
+                return (
+                  <Box
+                    key={link.href}
+                    component={Link}
+                    href={link.href}
+                    sx={{
+                      textDecoration: 'none',
+                      fontSize: '0.6875rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      fontWeight: active ? 600 : 400,
+                      color: active ? 'common.white' : 'rgba(255,255,255,0.7)',
+                      transition: 'color 0.15s',
+                      '&:hover': { color: 'common.white' },
+                    }}
+                  >
+                    {link.label}
+                  </Box>
+                )
+              })}
+            </Stack>
+
+            {/* User chip */}
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Avatar sx={{ bgcolor: 'accent.main', width: 32, height: 32 }}>
+                <User size={16} color="#ffffff" />
+              </Avatar>
+              <Typography sx={{ color: 'common.white', fontSize: '0.875rem', display: { xs: 'none', sm: 'block' } }}>
+                Admin
+              </Typography>
+            </Stack>
+
+            {/* Mobile hamburger */}
+            <IconButton
+              aria-label="Toggle navigation menu"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              sx={{
+                display: { xs: 'inline-flex', md: 'none' },
+                color: 'rgba(255,255,255,0.7)',
+                '&:hover': { color: 'common.white' },
+              }}
+            >
+              {mobileMenuOpen ? <CloseIcon size={20} /> : <MenuIcon size={20} />}
+            </IconButton>
+          </Stack>
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile collapse menu */}
+      <Collapse in={mobileMenuOpen && !isDesktop} sx={{ display: { md: 'none' } }}>
+        <Box sx={{ bgcolor: 'navBg.main', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          {navLinks.map((link) => {
+            const active = isActive(link.href)
+            return (
+              <Box
                 key={link.href}
+                component={Link}
                 href={link.href}
-                className={cn(
-                  "text-xs uppercase tracking-wider transition-colors",
-                  isActive(link.href)
-                    ? "text-white font-medium"
-                    : "text-white/70 hover:text-white"
-                )}
+                onClick={() => setMobileMenuOpen(false)}
+                sx={{
+                  display: 'block',
+                  px: 3,
+                  py: 1.5,
+                  textDecoration: 'none',
+                  fontSize: '0.6875rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  fontWeight: active ? 600 : 400,
+                  color: active ? 'common.white' : 'rgba(255,255,255,0.7)',
+                  bgcolor: active ? 'rgba(61, 91, 120, 0.3)' : 'transparent',
+                  borderBottom: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.05)', color: 'common.white' },
+                }}
               >
                 {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* User profile */}
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-[#3D5B78] flex items-center justify-center">
-              <User className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-white text-sm hidden sm:block">Admin</span>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden text-white/70 hover:text-white"
-            onClick={() => setMobileMenuOpen(v => !v)}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile dropdown nav */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-[#1A2634] border-t border-white/10 z-20 relative">
-          {/* Main nav links */}
-          {navLinks.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className={cn(
-                "flex items-center px-6 py-3 text-xs uppercase tracking-wider border-b border-white/10 transition-colors",
-                isActive(link.href)
-                  ? "text-white font-medium bg-[#3D5B78]/30"
-                  : "text-white/70 hover:text-white hover:bg-white/5"
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-          {/* Admin section divider */}
-          <div className="px-6 py-2 border-b border-white/10">
-            <span className="text-[10px] uppercase tracking-widest text-white/30">Admin</span>
-          </div>
-          {sidebarItems.map(item => {
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-6 py-3 text-xs uppercase tracking-wider border-b border-white/10 transition-colors",
-                  isActive(item.href)
-                    ? "text-white font-medium bg-[#3D5B78]/30"
-                    : "text-white/70 hover:text-white hover:bg-white/5"
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                {item.label}
-              </Link>
+              </Box>
             )
           })}
-        </div>
-      )}
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar — desktop only */}
-        <aside className="hidden md:flex flex-col w-16 shrink-0 bg-[#2C313C] py-4 gap-1 items-center">
-          {sidebarItems.map(item => {
+          <Box sx={{ px: 3, py: 1, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <Typography
+              sx={{
+                fontSize: '0.625rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                color: 'rgba(255,255,255,0.3)',
+              }}
+            >
+              Admin
+            </Typography>
+          </Box>
+          {sidebarItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.href)
             return (
-              <Link
+              <Stack
                 key={item.href}
+                component={Link}
                 href={item.href}
-                className={cn(
-                  "h-10 w-10 rounded-md flex items-center justify-center transition-colors",
-                  active
-                    ? "bg-[#3D5B78] text-white"
-                    : "text-white/60 hover:text-white hover:bg-[#363940]"
-                )}
-                title={item.label}
+                onClick={() => setMobileMenuOpen(false)}
+                direction="row"
+                spacing={1.5}
+                alignItems="center"
+                sx={{
+                  px: 3,
+                  py: 1.5,
+                  textDecoration: 'none',
+                  fontSize: '0.6875rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  fontWeight: active ? 600 : 400,
+                  color: active ? 'common.white' : 'rgba(255,255,255,0.7)',
+                  bgcolor: active ? 'rgba(61, 91, 120, 0.3)' : 'transparent',
+                  borderBottom: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.05)', color: 'common.white' },
+                }}
               >
-                <Icon className="h-5 w-5 shrink-0" />
-              </Link>
+                <Icon size={16} />
+                <Box component="span">{item.label}</Box>
+              </Stack>
             )
           })}
-        </aside>
+        </Box>
+      </Collapse>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          {/* Page Sub-Header */}
-          <div className="bg-[#3D5B78] px-4 sm:px-6 py-3 sm:py-4 shrink-0">
-            <h1 className="text-white text-lg sm:text-xl font-light">{title}</h1>
-          </div>
+      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Desktop-only left rail */}
+        <Box
+          component="aside"
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flexDirection: 'column',
+            width: 64,
+            flexShrink: 0,
+            bgcolor: 'sidebarBg.main',
+            py: 2,
+            gap: 0.5,
+            alignItems: 'center',
+          }}
+        >
+          {sidebarItems.map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.href)
+            return (
+              <Tooltip key={item.href} title={item.label} placement="right" arrow>
+                <IconButton
+                  component={Link}
+                  href={item.href}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 1,
+                    color: active ? 'common.white' : 'rgba(255,255,255,0.6)',
+                    bgcolor: active ? 'accent.main' : 'transparent',
+                    '&:hover': {
+                      bgcolor: active ? 'accent.dark' : 'sidebarBg.dark',
+                      color: 'common.white',
+                    },
+                  }}
+                >
+                  <Icon size={20} />
+                </IconButton>
+              </Tooltip>
+            )
+          })}
+        </Box>
 
-          {/* Scrollable Canvas */}
-          <main className="flex-1 overflow-auto bg-[#F0F2F5] p-3 sm:p-6">
+        {/* Main content */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+          {/* Page sub-header */}
+          <Box
+            sx={{
+              bgcolor: 'pageHeader.main',
+              px: { xs: 2, sm: 3 },
+              py: { xs: 1.5, sm: 2 },
+              flexShrink: 0,
+            }}
+          >
+            <Typography
+              component="h1"
+              sx={{
+                color: 'common.white',
+                fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                fontWeight: 300,
+                lineHeight: 1.3,
+              }}
+            >
+              {title}
+            </Typography>
+          </Box>
+
+          {/* Scrollable canvas */}
+          <Box
+            component="main"
+            sx={{
+              flex: 1,
+              overflow: 'auto',
+              bgcolor: 'background.default',
+              p: { xs: 1.5, sm: 3 },
+            }}
+          >
             {children}
-          </main>
-        </div>
-      </div>
-    </div>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   )
 }

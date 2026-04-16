@@ -2,101 +2,148 @@
 
 import Link from 'next/link'
 import { Star, Clock } from 'lucide-react'
+import Card from '@mui/material/Card'
+import CardActionArea from '@mui/material/CardActionArea'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import { format } from 'date-fns'
 import { ResourceTypeIcon, getResourceTypeLabel } from './resource-type-icon'
 import { TagBadge } from './tag-badge'
 import { EntityLinks } from './entity-links'
 import type { ResourceWithRelations, Tag } from '@/lib/types'
-import { cn } from '@/lib/utils'
-import { format } from 'date-fns'
 
 interface ResourceCardProps {
   resource: ResourceWithRelations
   tags: Tag[]
-  className?: string
 }
 
-export function ResourceCard({ resource, tags, className }: ResourceCardProps) {
+export function ResourceCard({ resource, tags }: ResourceCardProps) {
   const resourceTags = resource.tags
-    .map(tagId => tags.find(t => t.id === tagId))
+    .map((tagId) => tags.find((t) => t.id === tagId))
     .filter(Boolean) as Tag[]
 
   const formatEventDate = () => {
     if (resource.type !== 'event' || !resource.startDate) return null
-    
     const start = new Date(resource.startDate)
     const end = resource.endDate ? new Date(resource.endDate) : null
-    
     if (end && start.toDateString() !== end.toDateString()) {
       return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`
     }
-    
     return format(start, 'MMM d, yyyy')
   }
 
   const eventDate = formatEventDate()
 
   return (
-    <Link href={`/resources/${resource.id}`}>
-      <div 
-        className={cn(
-          'bg-card rounded-md overflow-hidden h-full flex flex-col shadow-sm transition-all hover:shadow-md',
-          resource.isStarred && 'ring-2 ring-[#3D5B78] bg-[#A5CDE0]/10',
-          className
-        )}
+    <Card
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'box-shadow 0.2s',
+        '&:hover': { boxShadow: '0 4px 12px rgba(26, 38, 52, 0.1)' },
+        ...(resource.isStarred && {
+          outline: '2px solid',
+          outlineColor: 'accent.main',
+          outlineOffset: -2,
+          bgcolor: 'rgba(165, 205, 224, 0.1)',
+        }),
+      }}
+    >
+      <CardActionArea
+        component={Link}
+        href={`/resources/${resource.id}`}
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          '& .MuiCardActionArea-focusHighlight': { display: 'none' },
+        }}
       >
-        {/* Card Header */}
-        <div className="bg-[#8192A6] py-2 px-3 relative">
-          <span className="text-white text-xs font-bold uppercase tracking-wider block text-center w-full">
+        {/* Header band */}
+        <Box
+          sx={{
+            bgcolor: 'cardHeader.main',
+            py: 1,
+            px: 1.5,
+            position: 'relative',
+          }}
+        >
+          <Typography
+            variant="overline"
+            sx={{ color: 'common.white', display: 'block', textAlign: 'center', lineHeight: 1 }}
+          >
             {getResourceTypeLabel(resource.type)}
-          </span>
+          </Typography>
           {resource.isStarred && (
-            <Star className="h-3.5 w-3.5 fill-white text-white absolute right-3 top-1/2 -translate-y-1/2" />
+            <Box sx={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
+              <Star size={14} fill="#ffffff" color="#ffffff" />
+            </Box>
           )}
-        </div>
+        </Box>
 
-        {/* Card Body */}
-        <div className="p-4 flex-1 flex flex-col">
-          <div className="flex items-start gap-3 mb-3">
+        {/* Body */}
+        <Stack sx={{ p: 2, flex: 1 }} spacing={1.5}>
+          <Stack direction="row" spacing={1.5} alignItems="flex-start">
             <ResourceTypeIcon type={resource.type} size="md" />
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-card-foreground">
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="subtitle2"
+                component="h3"
+                sx={{
+                  fontWeight: 600,
+                  lineHeight: 1.35,
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
                 {resource.title}
-              </h3>
-            </div>
-          </div>
-          
-          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
             {resource.description}
-          </p>
-          
+          </Typography>
+
           {eventDate && (
-            <div className="flex items-center gap-1.5 text-xs text-[#3D5B78] mb-3">
-              <Clock className="h-3 w-3" />
-              <span>{eventDate}</span>
-            </div>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: 'accent.main' }}>
+              <Clock size={12} />
+              <Typography variant="caption">{eventDate}</Typography>
+            </Stack>
           )}
 
           {resourceTags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {resourceTags.slice(0, 3).map(tag => (
+            <Stack direction="row" flexWrap="wrap" gap={0.5}>
+              {resourceTags.slice(0, 3).map((tag) => (
                 <TagBadge key={tag.id} name={tag.name} colorVariantId={tag.colorVariantId} size="sm" />
               ))}
               {resourceTags.length > 3 && (
-                <span className="text-xs text-muted-foreground self-center">
+                <Typography variant="caption" sx={{ color: 'text.secondary', alignSelf: 'center' }}>
                   +{resourceTags.length - 3}
-                </span>
+                </Typography>
               )}
-            </div>
+            </Stack>
           )}
 
-          <div className="mt-auto">
-            <EntityLinks 
-              badges={resource.linkedBadges} 
-              courses={resource.linkedCourses}
-            />
-          </div>
-        </div>
-      </div>
-    </Link>
+          <Box sx={{ mt: 'auto' }}>
+            <EntityLinks badges={resource.linkedBadges} courses={resource.linkedCourses} />
+          </Box>
+        </Stack>
+      </CardActionArea>
+    </Card>
   )
 }

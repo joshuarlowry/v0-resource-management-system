@@ -1,20 +1,20 @@
 "use client"
 
-import { cn } from '@/lib/utils'
+import Chip from '@mui/material/Chip'
+import type { SxProps, Theme } from '@mui/material/styles'
 import { useResources } from '@/lib/resources-context'
 import type { ColorVariant } from '@/lib/types'
 
 interface TagBadgeProps {
   name: string
   colorVariantId?: string
-  colorVariant?: ColorVariant // Direct variant object for standalone usage
+  colorVariant?: ColorVariant
   size?: 'sm' | 'md'
   onClick?: () => void
   onRemove?: () => void
-  className?: string
+  sx?: SxProps<Theme>
 }
 
-// Default fallback variant for when no variant is found
 const defaultVariant: ColorVariant = {
   id: 'default',
   name: 'Default',
@@ -23,94 +23,90 @@ const defaultVariant: ColorVariant = {
   borderColor: '#CBD5E1',
 }
 
-export function TagBadge({ 
-  name, 
+/**
+ * Tag pill rendered with the per-tag color variant. These colors are
+ * user-configurable at runtime, so they can't come from the theme
+ * palette — we apply them as inline `sx` values on an MUI Chip.
+ */
+export function TagBadge({
+  name,
   colorVariantId,
   colorVariant,
   size = 'sm',
   onClick,
   onRemove,
-  className 
+  sx,
 }: TagBadgeProps) {
   const { colorVariants } = useResources()
-  
-  const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5',
-    md: 'text-sm px-2.5 py-1',
-  }
 
-  // Resolve the variant: prefer direct prop, then lookup by ID, then fallback
-  const resolvedVariant = colorVariant 
-    || colorVariants.find(v => v.id === colorVariantId) 
-    || defaultVariant
+  const variant =
+    colorVariant
+    ?? colorVariants.find((v) => v.id === colorVariantId)
+    ?? defaultVariant
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-md font-medium transition-colors',
-        sizeClasses[size],
-        onClick && 'cursor-pointer hover:opacity-80',
-        className
-      )}
-      style={{
-        backgroundColor: resolvedVariant.background,
-        color: resolvedVariant.text,
-        border: resolvedVariant.borderColor ? `1px solid ${resolvedVariant.borderColor}` : undefined,
-      }}
+    <Chip
+      label={name}
+      size={size === 'sm' ? 'small' : 'medium'}
       onClick={onClick}
-    >
-      {name}
-      {onRemove && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onRemove()
-          }}
-          className="ml-0.5 hover:bg-black/10 rounded-full p-0.5"
-        >
-          <svg className="h-3 w-3" viewBox="0 0 12 12" fill="currentColor">
-            <path d="M9.707 3.707a1 1 0 0 0-1.414-1.414L6 4.586 3.707 2.293a1 1 0 0 0-1.414 1.414L4.586 6 2.293 8.293a1 1 0 1 0 1.414 1.414L6 7.414l2.293 2.293a1 1 0 0 0 1.414-1.414L7.414 6l2.293-2.293Z" />
-          </svg>
-        </button>
-      )}
-    </span>
+      onDelete={onRemove}
+      sx={{
+        bgcolor: variant.background,
+        color: variant.text,
+        border: variant.borderColor ? `1px solid ${variant.borderColor}` : 'none',
+        fontWeight: 500,
+        borderRadius: 1,
+        height: size === 'sm' ? 22 : 28,
+        fontSize: size === 'sm' ? '0.75rem' : '0.8125rem',
+        '& .MuiChip-label': {
+          px: 1,
+        },
+        '& .MuiChip-deleteIcon': {
+          color: variant.text,
+          opacity: 0.75,
+          '&:hover': { color: variant.text, opacity: 1 },
+        },
+        ...(onClick && {
+          cursor: 'pointer',
+          '&:hover': { opacity: 0.85, bgcolor: variant.background },
+        }),
+        ...sx,
+      }}
+    />
   )
 }
 
-// Standalone variant preview (doesn't need context - for color palette manager)
 interface ColorVariantPreviewProps {
   variant: ColorVariant
   label?: string
   size?: 'sm' | 'md'
-  className?: string
+  sx?: SxProps<Theme>
 }
 
-export function ColorVariantPreview({ 
-  variant, 
+/**
+ * Standalone preview for the palette manager — does not use the
+ * resources context (needed before the variant is saved).
+ */
+export function ColorVariantPreview({
+  variant,
   label,
-  size = 'sm', 
-  className 
+  size = 'sm',
+  sx,
 }: ColorVariantPreviewProps) {
-  const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5',
-    md: 'text-sm px-2.5 py-1',
-  }
-
   return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-md font-medium',
-        sizeClasses[size],
-        className
-      )}
-      style={{
-        backgroundColor: variant.background,
+    <Chip
+      label={label ?? variant.name}
+      size={size === 'sm' ? 'small' : 'medium'}
+      sx={{
+        bgcolor: variant.background,
         color: variant.text,
-        border: variant.borderColor ? `1px solid ${variant.borderColor}` : undefined,
+        border: variant.borderColor ? `1px solid ${variant.borderColor}` : 'none',
+        fontWeight: 500,
+        borderRadius: 1,
+        height: size === 'sm' ? 22 : 28,
+        fontSize: size === 'sm' ? '0.75rem' : '0.8125rem',
+        ...sx,
       }}
-    >
-      {label || variant.name}
-    </span>
+    />
   )
 }

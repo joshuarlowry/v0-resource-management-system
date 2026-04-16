@@ -2,12 +2,17 @@
 
 import { useMemo, useRef } from 'react'
 import Link from 'next/link'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import Divider from '@mui/material/Divider'
+import { Star, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { useResources } from '@/lib/resources-context'
 import { AppShell } from '@/components/resources/app-shell'
 import { ResourceTypeIcon, getResourceTypeLabel } from '@/components/resources/resource-type-icon'
-import { Star, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 export default function HomePage() {
   const { getResourcesWithRelations, tags, getColorVariant } = useResources()
@@ -15,220 +20,339 @@ export default function HomePage() {
 
   const allResources = getResourcesWithRelations()
 
-  // Get starred/featured resources for carousel
-  const featuredResources = useMemo(() => {
-    return allResources
-      .filter(r => r.isStarred)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-  }, [allResources])
+  const featuredResources = useMemo(
+    () =>
+      allResources
+        .filter((r) => r.isStarred)
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()),
+    [allResources]
+  )
 
-  // Group resources by tag for category view
   const categoriesWithResources = useMemo(() => {
-    return tags.map(tag => {
-      const tagResources = allResources.filter(r => r.tags.includes(tag.id))
-      return {
-        tag,
-        resources: tagResources,
-        count: tagResources.length,
-      }
-    }).filter(cat => cat.count > 0)
+    return tags
+      .map((tag) => {
+        const tagResources = allResources.filter((r) => r.tags.includes(tag.id))
+        return { tag, resources: tagResources, count: tagResources.length }
+      })
+      .filter((c) => c.count > 0)
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8) // Show top 8 categories
+      .slice(0, 8)
   }, [tags, allResources])
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const scrollAmount = 300
       carouselRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
+        left: direction === 'left' ? -300 : 300,
+        behavior: 'smooth',
       })
     }
   }
 
   return (
     <AppShell title="Home">
-      <div className="space-y-8">
-        {/* Featured Resources Section */}
+      <Stack spacing={4}>
+        {/* Featured */}
         {featuredResources.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-card-foreground flex items-center gap-2">
-                <Star className="h-4 w-4 fill-[#3D5B78] text-[#3D5B78]" />
-                Featured Resources
-              </h2>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 bg-card border-border hover:bg-muted rounded-full"
+          <Box component="section">
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Star size={16} fill="#3D5B78" color="#3D5B78" />
+                <Typography variant="overline" component="h2">Featured Resources</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <IconButton
+                  size="small"
                   onClick={() => scrollCarousel('left')}
+                  aria-label="Scroll featured left"
+                  sx={{
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '50%',
+                    '&:hover': { bgcolor: 'grey.100' },
+                  }}
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 bg-card border-border hover:bg-muted rounded-full"
+                  <ChevronLeft size={16} />
+                </IconButton>
+                <IconButton
+                  size="small"
                   onClick={() => scrollCarousel('right')}
+                  aria-label="Scroll featured right"
+                  sx={{
+                    bgcolor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '50%',
+                    '&:hover': { bgcolor: 'grey.100' },
+                  }}
                 >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                  <ChevronRight size={16} />
+                </IconButton>
+              </Stack>
+            </Stack>
 
-            {/* Carousel */}
-            <div 
+            <Box
               ref={carouselRef}
-              className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 snap-x snap-mandatory"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="scrollbar-hide"
+              sx={{
+                display: 'flex',
+                gap: 2,
+                overflowX: 'auto',
+                pb: 0.5,
+                scrollSnapType: 'x mandatory',
+              }}
             >
-              {featuredResources.map(resource => (
-                <Link 
-                  key={resource.id} 
+              {featuredResources.map((resource) => (
+                <Box
+                  key={resource.id}
+                  component={Link}
                   href={`/resources/${resource.id}`}
-                  className="flex-shrink-0 w-[180px] sm:w-[220px] snap-start"
+                  sx={{
+                    flexShrink: 0,
+                    width: { xs: 180, sm: 220 },
+                    scrollSnapAlign: 'start',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
                 >
-                  <div className="bg-card rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow h-full">
-                    {/* Image placeholder / Type header */}
-                    <div className="h-28 sm:h-32 bg-gradient-to-br from-[#3D5B78] to-[#8192A6] flex items-center justify-center relative">
-                      <ResourceTypeIcon type={resource.type} size="lg" showBackground={false} className="text-white/80" />
-                      <div className="absolute top-2 right-2">
-                        <Star className="h-4 w-4 fill-white text-white" />
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <p className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                  <Paper
+                    sx={{
+                      height: '100%',
+                      overflow: 'hidden',
+                      transition: 'box-shadow 0.2s',
+                      '&:hover': { boxShadow: '0 4px 12px rgba(26, 38, 52, 0.1)' },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: { xs: 112, sm: 128 },
+                        background: 'linear-gradient(135deg, #3D5B78 0%, #8192A6 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        color: 'rgba(255,255,255,0.8)',
+                      }}
+                    >
+                      <ResourceTypeIcon type={resource.type} size="lg" showBackground={false} color="rgba(255,255,255,0.8)" />
+                      <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+                        <Star size={16} fill="#ffffff" color="#ffffff" />
+                      </Box>
+                    </Box>
+                    <Box sx={{ p: 1.5 }}>
+                      <Typography variant="overline" sx={{ display: 'block', color: 'text.secondary', mb: 0.5, fontSize: { xs: '0.625rem', sm: '0.6875rem' } }}>
                         {getResourceTypeLabel(resource.type)}
-                      </p>
-                      <h3 className="font-medium text-xs sm:text-sm line-clamp-2 text-card-foreground">
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
                         {resource.title}
-                      </h3>
-                    </div>
-                  </div>
-                </Link>
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Box>
               ))}
-            </div>
-          </section>
+            </Box>
+          </Box>
         )}
 
-        {/* Browse Categories Section */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-card-foreground">
-              Browse Categories
-            </h2>
-            <Link 
-              href="/resources" 
-              className="text-xs uppercase tracking-wider text-[#3D5B78] hover:text-[#4B6785] font-medium flex items-center gap-1"
+        {/* Browse Categories */}
+        <Box component="section">
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+            <Typography variant="overline" component="h2">Browse Categories</Typography>
+            <Box
+              component={Link}
+              href="/resources"
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'accent.main',
+                fontWeight: 500,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                '&:hover': { color: 'accent.light' },
+              }}
             >
               See All
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+              <ArrowRight size={12} />
+            </Box>
+          </Stack>
 
-          {/* Category Grid */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                lg: 'repeat(3, 1fr)',
+                xl: 'repeat(4, 1fr)',
+              },
+            }}
+          >
             {categoriesWithResources.map(({ tag, resources: catResources, count }) => {
               const colorVariant = getColorVariant(tag.colorVariantId)
-              // Get preview resources for this category (top 4)
               const previewResources = catResources
                 .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
                 .slice(0, 4)
 
               return (
-                <div 
-                  key={tag.id}
-                  className="bg-card rounded-md shadow-sm overflow-hidden h-full flex flex-col"
-                >
-                  {/* Category Header */}
-                  <div 
-                    className="py-3 px-4 flex items-center gap-3"
-                    style={{ 
-                      backgroundColor: colorVariant?.background || '#3D5B78',
+                <Paper key={tag.id} sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  {/* Header */}
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    sx={{
+                      py: 1.5,
+                      px: 2,
+                      bgcolor: colorVariant?.background || '#3D5B78',
+                      color: colorVariant?.text || '#fff',
                     }}
                   >
-                    <div 
-                      className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                    <Box
+                      sx={{
+                        height: 36,
+                        width: 36,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(255,255,255,0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
                     >
-                      <span 
-                        className="text-base font-bold"
-                        style={{ color: colorVariant?.text || '#fff' }}
-                      >
+                      <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: 'inherit' }}>
                         {tag.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <h3 
-                        className="font-bold text-xs sm:text-sm uppercase tracking-wider truncate"
-                        style={{ color: colorVariant?.text || '#fff' }}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="overline"
+                        component="h3"
+                        sx={{
+                          display: 'block',
+                          color: 'inherit',
+                          fontSize: { xs: '0.6875rem', sm: '0.75rem' },
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
                       >
                         {tag.name}
-                      </h3>
-                      <p 
-                        className="text-[10px] sm:text-xs opacity-80"
-                        style={{ color: colorVariant?.text || '#fff' }}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'inherit',
+                          opacity: 0.8,
+                          fontSize: { xs: '0.625rem', sm: '0.75rem' },
+                        }}
                       >
                         {count} resource{count !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </div>
+                      </Typography>
+                    </Box>
+                  </Stack>
 
-                  {/* Category Body - Resource preview list */}
-                  <div className="p-3 sm:p-4 flex-1 flex flex-col">
-                    <ul className="space-y-2 flex-1">
-                      {previewResources.map(resource => (
-                        <li key={resource.id}>
-                          <Link 
+                  {/* Body */}
+                  <Stack sx={{ p: { xs: 1.5, sm: 2 }, flex: 1 }}>
+                    <Stack component="ul" spacing={1} sx={{ listStyle: 'none', p: 0, m: 0, flex: 1 }}>
+                      {previewResources.map((resource) => (
+                        <Box component="li" key={resource.id}>
+                          <Stack
+                            component={Link}
                             href={`/resources/${resource.id}`}
-                            className="flex items-center gap-2 group"
+                            direction="row"
+                            spacing={1}
+                            alignItems="center"
+                            sx={{
+                              textDecoration: 'none',
+                              color: 'text.secondary',
+                              '&:hover': { color: 'text.primary' },
+                            }}
                           >
-                            <ResourceTypeIcon type={resource.type} size="sm" className="flex-shrink-0" />
-                            <span className="text-xs text-muted-foreground group-hover:text-card-foreground transition-colors line-clamp-1">
+                            <ResourceTypeIcon type={resource.type} size="sm" />
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 1,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                color: 'inherit',
+                              }}
+                            >
                               {resource.title}
-                            </span>
-                          </Link>
-                        </li>
+                            </Typography>
+                          </Stack>
+                        </Box>
                       ))}
-                    </ul>
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <Link 
-                        href={`/resources?tag=${tag.id}`}
-                        className="text-xs uppercase tracking-wider text-[#3D5B78] font-medium hover:text-[#4B6785] transition-colors"
-                      >
-                        See All Resources
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                    </Stack>
+                    <Divider sx={{ mt: 1.5, mb: 1.5 }} />
+                    <Box
+                      component={Link}
+                      href={`/resources?tag=${tag.id}`}
+                      sx={{
+                        fontSize: '0.75rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        color: 'accent.main',
+                        fontWeight: 500,
+                        textDecoration: 'none',
+                        '&:hover': { color: 'accent.light' },
+                      }}
+                    >
+                      See All Resources
+                    </Box>
+                  </Stack>
+                </Paper>
               )
             })}
-          </div>
+          </Box>
 
-          {/* No categories state */}
           {categoriesWithResources.length === 0 && (
-            <div className="bg-card rounded-md shadow-sm p-12 text-center">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            <Paper sx={{ p: 6, textAlign: 'center' }}>
+              <Typography variant="overline" sx={{ color: 'text.secondary' }}>
                 No categories with resources yet
-              </p>
-            </div>
+              </Typography>
+            </Paper>
           )}
-        </section>
+        </Box>
 
-        {/* See All Categories Button */}
-        <div className="flex justify-center pt-4">
-          <Link href="/resources">
-            <Button 
-              variant="outline" 
-              className="gap-2 text-xs uppercase tracking-wider bg-card border-border hover:bg-[#3D5B78] hover:text-white hover:border-[#3D5B78] rounded-md px-8"
-            >
-              See All Categories
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </div>
+        {/* See All */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+          <Button
+            component={Link}
+            href="/resources"
+            variant="outlined"
+            endIcon={<ArrowRight size={16} />}
+            sx={{
+              bgcolor: 'background.paper',
+              borderColor: 'divider',
+              color: 'text.secondary',
+              px: 4,
+              '&:hover': {
+                bgcolor: 'accent.main',
+                color: 'common.white',
+                borderColor: 'accent.main',
+              },
+            }}
+          >
+            See All Categories
+          </Button>
+        </Box>
+      </Stack>
     </AppShell>
   )
 }

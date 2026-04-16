@@ -2,47 +2,31 @@
 
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, AlertCircle } from 'lucide-react'
+import Box from '@mui/material/Box'
+import Stack from '@mui/material/Stack'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
+import FormLabel from '@mui/material/FormLabel'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Checkbox from '@mui/material/Checkbox'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import Tooltip from '@mui/material/Tooltip'
+import Badge from '@mui/material/Badge'
 import { useResources } from '@/lib/resources-context'
 import { ColorVariantPreview } from './tag-badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
 import type { ColorVariant, CreateColorVariantInput } from '@/lib/types'
 
-interface ColorPaletteManagerProps {
-  className?: string
-}
-
-export function ColorPaletteManager({ className }: ColorPaletteManagerProps) {
-  const { 
-    colorVariants, 
-    addColorVariant, 
-    updateColorVariant, 
+export function ColorPaletteManager() {
+  const {
+    colorVariants,
+    addColorVariant,
+    updateColorVariant,
     deleteColorVariant,
     getColorVariantUsageCount,
   } = useResources()
@@ -65,105 +49,160 @@ export function ColorPaletteManager({ className }: ColorPaletteManagerProps) {
   }
 
   const handleDelete = async () => {
-    if (deletingVariant) {
-      try {
-        await deleteColorVariant(deletingVariant.id)
-        setDeletingVariant(null)
-        setDeleteError(null)
-      } catch (error) {
-        setDeleteError((error as Error).message)
-      }
+    if (!deletingVariant) return
+    try {
+      await deleteColorVariant(deletingVariant.id)
+      setDeletingVariant(null)
+      setDeleteError(null)
+    } catch (err) {
+      setDeleteError((err as Error).message)
     }
   }
 
   return (
-    <div className={cn('', className)}>
-      {/* Header */}
-      <div className="bg-[#8192A6] py-2 px-4 rounded-t-md">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white text-center">
+    <Box>
+      <Box sx={{ bgcolor: 'cardHeader.main', py: 1, px: 2, borderTopLeftRadius: 6, borderTopRightRadius: 6 }}>
+        <Typography variant="overline" component="h3" sx={{ color: 'common.white', display: 'block', textAlign: 'center' }}>
           Color Palette
-        </h3>
-      </div>
+        </Typography>
+      </Box>
 
-      {/* Palette Grid */}
-      <div className="bg-card rounded-b-md shadow-sm p-4">
-        <div className="flex flex-wrap gap-3">
-          <TooltipProvider>
-            {colorVariants.map(variant => {
-              const usageCount = getColorVariantUsageCount(variant.id)
-              return (
-                <Tooltip key={variant.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => setEditingVariant(variant)}
-                      className="group relative flex flex-col items-center"
+      <Paper sx={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, p: 2 }}>
+        <Stack direction="row" flexWrap="wrap" spacing={1.5} useFlexGap>
+          {colorVariants.map((variant) => {
+            const usage = getColorVariantUsageCount(variant.id)
+            return (
+              <Tooltip
+                key={variant.id}
+                arrow
+                title={`${variant.name} - ${usage} tag${usage !== 1 ? 's' : ''}`}
+              >
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={() => setEditingVariant(variant)}
+                  sx={{
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    p: 0,
+                  }}
+                >
+                  <Badge
+                    invisible={usage === 0}
+                    badgeContent={usage}
+                    sx={{
+                      '& .MuiBadge-badge': {
+                        bgcolor: 'accent.main',
+                        color: 'common.white',
+                        fontSize: '0.5625rem',
+                        minWidth: 16,
+                        height: 16,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 1,
+                        bgcolor: variant.background,
+                        border: variant.borderColor ? `2px solid ${variant.borderColor}` : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'transform 0.15s',
+                        boxShadow: '0 1px 2px 0 rgba(26, 38, 52, 0.05)',
+                        '& .edit-icon': { opacity: 0, transition: 'opacity 0.15s' },
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          '& .edit-icon': { opacity: 1 },
+                        },
+                      }}
                     >
-                      <div 
-                        className="h-12 w-12 rounded-md shadow-sm transition-transform group-hover:scale-105 flex items-center justify-center"
-                        style={{ 
-                          backgroundColor: variant.background,
-                          border: variant.borderColor ? `2px solid ${variant.borderColor}` : undefined,
-                        }}
-                      >
-                        <Pencil className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: variant.text }} />
-                      </div>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
-                        {variant.name}
-                      </span>
-                      {usageCount > 0 && (
-                        <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[#3D5B78] text-white text-[9px] flex items-center justify-center">
-                          {usageCount}
-                        </span>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-card border-border rounded-md">
-                    <p className="text-xs">{variant.name} - {usageCount} tag{usageCount !== 1 ? 's' : ''}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
-          </TooltipProvider>
+                      <Box className="edit-icon" sx={{ color: variant.text, display: 'flex' }}>
+                        <Pencil size={16} />
+                      </Box>
+                    </Box>
+                  </Badge>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: 'text.secondary',
+                      mt: 0.5,
+                      fontSize: '0.625rem',
+                    }}
+                  >
+                    {variant.name}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            )
+          })}
 
-          {/* Add New Button */}
-          <button
+          <Box
+            component="button"
+            type="button"
             onClick={() => setIsCreateOpen(true)}
-            className="h-12 w-12 rounded-md border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-[#3D5B78] hover:text-[#3D5B78] transition-colors"
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 1,
+              border: '2px dashed',
+              borderColor: 'grey.300',
+              bgcolor: 'transparent',
+              color: 'grey.400',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s',
+              '&:hover': { borderColor: 'accent.main', color: 'accent.main' },
+            }}
+            aria-label="Add color variant"
           >
-            <Plus className="h-5 w-5" />
-          </button>
-        </div>
+            <Plus size={20} />
+          </Box>
+        </Stack>
 
-        <p className="text-[10px] text-muted-foreground mt-3 text-center uppercase tracking-wider">
+        <Typography
+          variant="caption"
+          sx={{
+            display: 'block',
+            textAlign: 'center',
+            mt: 2,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'text.secondary',
+            fontSize: '0.625rem',
+          }}
+        >
           Click to edit - Numbers show tag usage
-        </p>
-      </div>
+        </Typography>
+      </Paper>
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-border rounded-md">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-bold uppercase tracking-wider">Add Color Variant</DialogTitle>
-            <DialogDescription className="sr-only">
-              Add a new color variant to the palette by specifying a name and colors.
-            </DialogDescription>
-          </DialogHeader>
-          <ColorVariantForm
-            onSubmit={handleCreate}
-            onCancel={() => setIsCreateOpen(false)}
-          />
+      {/* Create dialog */}
+      <Dialog open={isCreateOpen} onClose={() => setIsCreateOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          <Typography variant="overline" component="span">Add Color Variant</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <ColorVariantForm onSubmit={handleCreate} onCancel={() => setIsCreateOpen(false)} />
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editingVariant} onOpenChange={() => setEditingVariant(null)}>
-        <DialogContent className="sm:max-w-md bg-card border-border rounded-md">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-bold uppercase tracking-wider">Edit Color Variant</DialogTitle>
-            <DialogDescription className="sr-only">
-              Edit the color variant name and color values.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Edit dialog */}
+      <Dialog open={!!editingVariant} onClose={() => setEditingVariant(null)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          <Typography variant="overline" component="span">Edit Color Variant</Typography>
+        </DialogTitle>
+        <DialogContent>
           {editingVariant && (
             <ColorVariantForm
               variant={editingVariant}
@@ -179,42 +218,50 @@ export function ColorPaletteManager({ className }: ColorPaletteManagerProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deletingVariant} onOpenChange={() => { setDeletingVariant(null); setDeleteError(null); }}>
-        <AlertDialogContent className="bg-card border-border rounded-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm font-bold uppercase tracking-wider">Delete Color Variant</AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteError ? (
-                <span className="text-destructive flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  {deleteError}
-                </span>
-              ) : (
-                <>Are you sure you want to delete the &ldquo;{deletingVariant?.name}&rdquo; color variant? This action cannot be undone.</>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs uppercase tracking-wider border-border rounded-md">Cancel</AlertDialogCancel>
+      {/* Delete confirmation */}
+      <Dialog
+        open={!!deletingVariant}
+        onClose={() => {
+          setDeletingVariant(null)
+          setDeleteError(null)
+        }}
+      >
+        <DialogTitle>
+          <Typography variant="overline" component="span">Delete Color Variant</Typography>
+        </DialogTitle>
+        <DialogContent>
+          {deleteError ? (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'error.main' }}>
+              <AlertCircle size={16} />
+              <Typography variant="body2">{deleteError}</Typography>
+            </Stack>
+          ) : (
+            <Typography variant="body2">
+              Are you sure you want to delete the &ldquo;{deletingVariant?.name}&rdquo; color variant? This action cannot
+              be undone.
+            </Typography>
+          )}
+          <Stack direction="row" justifyContent="flex-end" spacing={1.5} sx={{ mt: 3 }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setDeletingVariant(null)
+                setDeleteError(null)
+              }}
+            >
+              Cancel
+            </Button>
             {!deleteError && (
-              <AlertDialogAction 
-                onClick={handleDelete} 
-                className="text-xs uppercase tracking-wider bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md"
-              >
+              <Button variant="contained" color="error" onClick={handleDelete}>
                 Delete
-              </AlertDialogAction>
+              </Button>
             )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    </Box>
   )
 }
-
-// ============================================
-// Color Variant Form
-// ============================================
 
 interface ColorVariantFormProps {
   variant?: ColorVariant
@@ -234,7 +281,6 @@ function ColorVariantForm({ variant, onSubmit, onCancel, onDelete, usageCount = 
   const [borderColor, setBorderColor] = useState(variant?.borderColor || '#CBD5E1')
 
   const textValue = textColor === 'light' ? '#FFFFFF' : '#475569'
-
   const previewVariant: ColorVariant = {
     id: 'preview',
     name: name || 'Sample Tag',
@@ -256,143 +302,169 @@ function ColorVariantForm({ variant, onSubmit, onCancel, onDelete, usageCount = 
   const isValid = name.trim().length > 0
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Name */}
-      <div className="space-y-2">
-        <Label className="text-xs uppercase tracking-wider">Name</Label>
-        <Input
+    <Box component="form" onSubmit={handleSubmit}>
+      <Stack spacing={3}>
+        <TextField
+          label="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g., Navy, Teal, Coral"
-          className="bg-card border-border rounded-md"
+          size="small"
+          fullWidth
         />
-      </div>
 
-      {/* Background Color */}
-      <div className="space-y-2">
-        <Label className="text-xs uppercase tracking-wider">Background Color</Label>
-        <div className="flex items-center gap-3">
-          <input
-            type="color"
-            value={background}
-            onChange={(e) => setBackground(e.target.value)}
-            className="h-10 w-16 rounded-md cursor-pointer border border-border"
-          />
-          <Input
-            value={background}
-            onChange={(e) => setBackground(e.target.value)}
-            placeholder="#3D5B78"
-            className="flex-1 font-mono text-sm bg-card border-border rounded-md"
-          />
-        </div>
-      </div>
-
-      {/* Text Color */}
-      <div className="space-y-2">
-        <Label className="text-xs uppercase tracking-wider">Text Color</Label>
-        <RadioGroup 
-          value={textColor} 
-          onValueChange={(v) => setTextColor(v as 'light' | 'dark')}
-          className="flex gap-4"
-        >
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="light" id="text-light" />
-            <Label htmlFor="text-light" className="cursor-pointer flex items-center gap-2">
-              <span className="h-4 w-4 rounded-full bg-white border border-slate-300" />
-              <span className="text-xs">White</span>
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <RadioGroupItem value="dark" id="text-dark" />
-            <Label htmlFor="text-dark" className="cursor-pointer flex items-center gap-2">
-              <span className="h-4 w-4 rounded-full bg-slate-600" />
-              <span className="text-xs">Dark</span>
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
-
-      {/* Border Option */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="has-border"
-            checked={hasBorder}
-            onChange={(e) => setHasBorder(e.target.checked)}
-            className="rounded border-border"
-          />
-          <Label htmlFor="has-border" className="text-xs uppercase tracking-wider cursor-pointer">
-            Add Border (for light backgrounds)
-          </Label>
-        </div>
-        {hasBorder && (
-          <div className="flex items-center gap-3 ml-5">
-            <input
+        <Stack spacing={1}>
+          <FormLabel>Background Color</FormLabel>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box
+              component="input"
               type="color"
-              value={borderColor}
-              onChange={(e) => setBorderColor(e.target.value)}
-              className="h-8 w-12 rounded cursor-pointer border border-border"
+              value={background}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBackground(e.target.value)}
+              sx={{
+                height: 40,
+                width: 64,
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider',
+                cursor: 'pointer',
+                p: 0,
+                bgcolor: 'transparent',
+              }}
             />
-            <Input
-              value={borderColor}
-              onChange={(e) => setBorderColor(e.target.value)}
-              placeholder="#CBD5E1"
-              className="flex-1 font-mono text-sm bg-card border-border rounded-md"
+            <TextField
+              value={background}
+              onChange={(e) => setBackground(e.target.value)}
+              placeholder="#3D5B78"
+              size="small"
+              fullWidth
+              sx={{ '& input': { fontFamily: 'var(--font-geist-mono), monospace' } }}
             />
-          </div>
-        )}
-      </div>
+          </Stack>
+        </Stack>
 
-      {/* Preview */}
-      <div className="space-y-2">
-        <Label className="text-xs uppercase tracking-wider">Preview</Label>
-        <div className="bg-muted/30 rounded-md p-4 flex items-center justify-center">
-          <ColorVariantPreview variant={previewVariant} label={name || 'Sample Tag'} size="md" />
-        </div>
-      </div>
+        <Stack spacing={1}>
+          <FormLabel>Text Color</FormLabel>
+          <RadioGroup
+            row
+            value={textColor}
+            onChange={(e) => setTextColor(e.target.value as 'light' | 'dark')}
+          >
+            <FormControlLabel
+              value="light"
+              control={<Radio size="small" />}
+              label={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: '#ffffff', border: '1px solid', borderColor: 'grey.300' }} />
+                  <Typography variant="caption">White</Typography>
+                </Stack>
+              }
+            />
+            <FormControlLabel
+              value="dark"
+              control={<Radio size="small" />}
+              label={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: 'grey.600' }} />
+                  <Typography variant="caption">Dark</Typography>
+                </Stack>
+              }
+            />
+          </RadioGroup>
+        </Stack>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-2">
-        <div>
-          {onDelete && usageCount === 0 && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              <span className="text-xs uppercase tracking-wider">Delete</span>
+        <Stack spacing={1}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={hasBorder}
+                onChange={(_, v) => setHasBorder(v)}
+                size="small"
+              />
+            }
+            label={<Typography variant="overline">Add Border (for light backgrounds)</Typography>}
+          />
+          {hasBorder && (
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ ml: 3.5 }}>
+              <Box
+                component="input"
+                type="color"
+                value={borderColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBorderColor(e.target.value)}
+                sx={{
+                  height: 32,
+                  width: 48,
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  cursor: 'pointer',
+                  p: 0,
+                  bgcolor: 'transparent',
+                }}
+              />
+              <TextField
+                value={borderColor}
+                onChange={(e) => setBorderColor(e.target.value)}
+                placeholder="#CBD5E1"
+                size="small"
+                fullWidth
+                sx={{ '& input': { fontFamily: 'var(--font-geist-mono), monospace' } }}
+              />
+            </Stack>
+          )}
+        </Stack>
+
+        <Stack spacing={1}>
+          <FormLabel>Preview</FormLabel>
+          <Box
+            sx={{
+              bgcolor: 'rgba(232, 234, 237, 0.3)',
+              borderRadius: 1,
+              p: 2,
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <ColorVariantPreview variant={previewVariant} label={name || 'Sample Tag'} size="md" />
+          </Box>
+        </Stack>
+
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pt: 1 }}>
+          <Box>
+            {onDelete && usageCount === 0 && (
+              <Button
+                type="button"
+                variant="text"
+                color="error"
+                size="small"
+                startIcon={<Trash2 size={16} />}
+                onClick={onDelete}
+              >
+                Delete
+              </Button>
+            )}
+            {onDelete && usageCount > 0 && (
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.625rem' }}>
+                Used by {usageCount} tag{usageCount !== 1 ? 's' : ''} - cannot delete
+              </Typography>
+            )}
+          </Box>
+          <Stack direction="row" spacing={1}>
+            <Button type="button" variant="outlined" size="small" onClick={onCancel}>
+              Cancel
             </Button>
-          )}
-          {onDelete && usageCount > 0 && (
-            <p className="text-[10px] text-muted-foreground">
-              Used by {usageCount} tag{usageCount !== 1 ? 's' : ''} - cannot delete
-            </p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onCancel}
-            className="text-xs uppercase tracking-wider border-border rounded-md"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            size="sm"
-            disabled={!isValid}
-            className="text-xs uppercase tracking-wider bg-[#3D5B78] hover:bg-[#4B6785] text-white rounded-md"
-          >
-            {variant ? 'Save Changes' : 'Add Variant'}
-          </Button>
-        </div>
-      </div>
-    </form>
+            <Button
+              type="submit"
+              variant="contained"
+              size="small"
+              disabled={!isValid}
+              sx={{ bgcolor: 'accent.main', '&:hover': { bgcolor: 'accent.dark' } }}
+            >
+              {variant ? 'Save Changes' : 'Add Variant'}
+            </Button>
+          </Stack>
+        </Stack>
+      </Stack>
+    </Box>
   )
 }
