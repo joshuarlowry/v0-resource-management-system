@@ -102,50 +102,6 @@ function BrowsePageContent() {
   return (
     <AppShell title={activeCategoryTag ? `${activeCategoryTag.name} Resources` : 'Browse Resources'}>
       <Stack spacing={3}>
-        {activeCategoryTag && (
-          <Box
-            sx={{
-              borderRadius: 1,
-              p: 2,
-              bgcolor: activeCategoryColor?.background || '#3D5B78',
-              color: activeCategoryColor?.text || '#fff',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1.5,
-            }}
-          >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <IconButton
-                component={Link}
-                href="/"
-                sx={{ color: 'inherit', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
-                aria-label="Back home"
-              >
-                <ArrowLeft size={16} />
-              </IconButton>
-              <Box>
-                <Typography variant="overline" component="h2" sx={{ color: 'inherit', display: 'block' }}>
-                  {activeCategoryTag.name}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.8 }}>
-                  Showing all resources in this category
-                </Typography>
-              </Box>
-            </Stack>
-            <Button
-              size="small"
-              variant="text"
-              startIcon={<X size={12} />}
-              onClick={clearCategoryFilter}
-              sx={{ color: 'inherit', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}
-            >
-              Clear Filter
-            </Button>
-          </Box>
-        )}
-
         <Paper sx={{ py: 1, px: 2 }}>
           <SearchInput
             value={searchQuery}
@@ -172,6 +128,51 @@ function BrowsePageContent() {
             colorVariants={colorVariants}
           />
         </Paper>
+
+        {activeCategoryTag && (
+          <Box
+            sx={{
+              borderRadius: 1,
+              p: 1.5,
+              px: 2,
+              bgcolor: activeCategoryColor?.background || '#3D5B78',
+              color: activeCategoryColor?.text || '#fff',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5,
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <IconButton
+                component={Link}
+                href="/"
+                sx={{ color: 'inherit', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }, p: 0.5 }}
+                aria-label="Back home"
+              >
+                <ArrowLeft size={16} />
+              </IconButton>
+              <Box>
+                <Typography variant="overline" component="h2" sx={{ color: 'inherit', display: 'block', fontSize: '0.65rem' }}>
+                  {activeCategoryTag.name}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'inherit', opacity: 0.8, fontSize: '0.7rem' }}>
+                  Showing all resources in this category
+                </Typography>
+              </Box>
+            </Stack>
+            <Button
+              size="small"
+              variant="text"
+              startIcon={<X size={12} />}
+              onClick={clearCategoryFilter}
+              sx={{ color: 'inherit', '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }, fontSize: '0.7rem', py: 0.5, px: 1 }}
+            >
+              Clear Filter
+            </Button>
+          </Box>
+        )}
 
         <Typography
           variant="caption"
