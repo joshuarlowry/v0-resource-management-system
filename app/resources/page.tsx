@@ -47,10 +47,15 @@ function BrowsePageContent() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
 
   const tagParam = searchParams.get('tag')
+  const searchParam = searchParams.get('search')
 
   useEffect(() => {
     if (tagParam) setSelectedTags([tagParam])
   }, [tagParam])
+
+  useEffect(() => {
+    if (searchParam) setSearchQuery(searchParam)
+  }, [searchParam])
 
   const activeCategoryTag = tagParam ? tags.find((t) => t.id === tagParam) : null
   const activeCategoryColor = activeCategoryTag ? getColorVariant(activeCategoryTag.colorVariantId) : null
