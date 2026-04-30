@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
@@ -13,10 +13,12 @@ import { Star, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { useResources } from '@/lib/resources-context'
 import { AppShell } from '@/components/resources/app-shell'
 import { ResourceTypeIcon, getResourceTypeLabel } from '@/components/resources/resource-type-icon'
+import { SearchInput } from '@/components/resources/search-input'
 
 export default function HomePage() {
   const { getResourcesWithRelations, tags, getColorVariant } = useResources()
   const carouselRef = useRef<HTMLDivElement>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const allResources = getResourcesWithRelations()
 
@@ -28,7 +30,7 @@ export default function HomePage() {
     [allResources]
   )
 
-  const categoriesWithResources = useMemo(() => {
+  const allCategoriesWithResources = useMemo(() => {
     return tags
       .map((tag) => {
         const tagResources = allResources.filter((r) => r.tags.includes(tag.id))
@@ -36,12 +38,11 @@ export default function HomePage() {
       })
       .filter((c) => c.count > 0)
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8)
   }, [tags, allResources])
 
   const topCategories = useMemo(() => {
-    return categoriesWithResources.slice(0, 4)
-  }, [categoriesWithResources])
+    return allCategoriesWithResources.slice(0, 4)
+  }, [allCategoriesWithResources])
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -55,8 +56,15 @@ export default function HomePage() {
   return (
     <AppShell title="Home">
       <Stack spacing={4}>
-        {/* Category Filter Menu */}
-        {topCategories.length > 0 && (
+        {/* Search Bar */}
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search all resources..."
+        />
+
+        {/* Category Filter Menu - Show All Categories */}
+        {allCategoriesWithResources.length > 0 && (
           <Box
             sx={{
               display: 'flex',
@@ -93,7 +101,7 @@ export default function HomePage() {
             >
               All Categories
             </Box>
-            {topCategories.map(({ tag }) => (
+            {allCategoriesWithResources.map(({ tag }) => (
               <Box
                 key={tag.id}
                 component={Link}
@@ -274,7 +282,7 @@ export default function HomePage() {
               },
             }}
           >
-            {categoriesWithResources.map(({ tag, resources: catResources, count }) => {
+            {topCategories.map(({ tag, resources: catResources, count }) => {
               const colorVariant = getColorVariant(tag.colorVariantId)
               const previewResources = catResources
                 .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
@@ -394,7 +402,7 @@ export default function HomePage() {
             })}
           </Box>
 
-          {categoriesWithResources.length === 0 && (
+          {topCategories.length === 0 && (
             <Paper sx={{ p: 6, textAlign: 'center' }}>
               <Typography variant="overline" sx={{ color: 'text.secondary' }}>
                 No categories with resources yet
