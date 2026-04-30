@@ -16,9 +16,10 @@ import type { ResourceWithRelations, Tag } from '@/lib/types'
 interface ResourceCardProps {
   resource: ResourceWithRelations
   tags: Tag[]
+  variant?: 'grid' | 'list'
 }
 
-export function ResourceCard({ resource, tags }: ResourceCardProps) {
+export function ResourceCard({ resource, tags, variant = 'grid' }: ResourceCardProps) {
   const resourceTags = resource.tags
     .map((tagId) => tags.find((t) => t.id === tagId))
     .filter(Boolean) as Tag[]
@@ -34,6 +35,101 @@ export function ResourceCard({ resource, tags }: ResourceCardProps) {
   }
 
   const eventDate = formatEventDate()
+
+  if (variant === 'list') {
+    return (
+      <Box
+        component={Link}
+        href={`/resources/${resource.id}`}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          p: 2,
+          borderRadius: 1,
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          transition: 'all 0.2s',
+          textDecoration: 'none',
+          '&:hover': {
+            boxShadow: '0 2px 8px rgba(26, 38, 52, 0.08)',
+            borderColor: 'action.hover',
+          },
+          ...(resource.isStarred && {
+            outline: '2px solid',
+            outlineColor: 'accent.main',
+            outlineOffset: -2,
+            bgcolor: 'rgba(165, 205, 224, 0.1)',
+          }),
+        }}
+      >
+        {/* Type Icon */}
+        <Box sx={{ flexShrink: 0 }}>
+          <ResourceTypeIcon type={resource.type} size="md" />
+        </Box>
+
+        {/* Title and Description */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Stack spacing={0.5}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 600,
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {resource.title}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {resource.description}
+            </Typography>
+          </Stack>
+        </Box>
+
+        {/* Event Date (if applicable) */}
+        {eventDate && (
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ color: 'accent.main', flexShrink: 0 }}>
+            <Clock size={12} />
+            <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>{eventDate}</Typography>
+          </Stack>
+        )}
+
+        {/* Tags */}
+        {resourceTags.length > 0 && (
+          <Stack direction="row" gap={0.5} flexWrap="wrap" sx={{ flexShrink: 0 }}>
+            {resourceTags.slice(0, 2).map((tag) => (
+              <TagBadge key={tag.id} name={tag.name} colorVariantId={tag.colorVariantId} size="sm" />
+            ))}
+            {resourceTags.length > 2 && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                +{resourceTags.length - 2}
+              </Typography>
+            )}
+          </Stack>
+        )}
+
+        {/* Starred Indicator */}
+        {resource.isStarred && (
+          <Box sx={{ flexShrink: 0 }}>
+            <Star size={16} fill="currentColor" color="var(--mui-palette-accent-main)" />
+          </Box>
+        )}
+      </Box>
+    )
+  }
 
   return (
     <Card
