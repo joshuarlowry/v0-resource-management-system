@@ -263,27 +263,6 @@ export default function HomePage() {
           </Stack>
 
           <Box
-              component={Link}
-              href="/resources"
-              sx={{
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: 'accent.main',
-                fontWeight: 500,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.5,
-                '&:hover': { color: 'accent.light' },
-              }}
-            >
-              See All
-              <ArrowRight size={12} />
-            </Box>
-          </Stack>
-
-          <Box
             sx={{
               display: 'grid',
               gap: 2,
