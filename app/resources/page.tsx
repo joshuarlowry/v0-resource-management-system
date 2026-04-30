@@ -9,7 +9,7 @@ import Paper from '@mui/material/Paper'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
-import { X, ArrowLeft, Search } from 'lucide-react'
+import { X, ArrowLeft, Search, Grid2X2, List } from 'lucide-react'
 import { useResources } from '@/lib/resources-context'
 import { AppShell } from '@/components/resources/app-shell'
 import { SearchInput } from '@/components/resources/search-input'
@@ -44,6 +44,7 @@ function BrowsePageContent() {
   const [selectedBadges, setSelectedBadges] = useState<string[]>([])
   const [selectedCourses, setSelectedCourses] = useState<string[]>([])
   const [starredOnly, setStarredOnly] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
 
   const tagParam = searchParams.get('tag')
 
@@ -174,29 +175,70 @@ function BrowsePageContent() {
             letterSpacing: '0.08em',
             color: 'secondary.main',
             fontSize: '0.6875rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
-          {sortedResources.length} RESOURCES FOUND
-          {searchQuery && ` FOR "${searchQuery}"`}
+          <span>
+            {sortedResources.length} RESOURCES FOUND
+            {searchQuery && ` FOR "${searchQuery}"`}
+          </span>
+          <Stack direction="row" spacing={0.5}>
+            <IconButton
+              size="small"
+              onClick={() => setViewMode('list')}
+              sx={{
+                color: viewMode === 'list' ? 'accent.main' : 'text.secondary',
+                border: '1px solid',
+                borderColor: viewMode === 'list' ? 'accent.main' : 'divider',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+              }}
+              aria-label="List view"
+            >
+              <List size={16} />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => setViewMode('grid')}
+              sx={{
+                color: viewMode === 'grid' ? 'accent.main' : 'text.secondary',
+                border: '1px solid',
+                borderColor: viewMode === 'grid' ? 'accent.main' : 'divider',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' },
+              }}
+              aria-label="Grid view"
+            >
+              <Grid2X2 size={16} />
+            </IconButton>
+          </Stack>
         </Typography>
 
         {sortedResources.length > 0 ? (
-          <Box
-            sx={{
-              display: 'grid',
-              gap: 2,
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, 1fr)',
-                lg: 'repeat(3, 1fr)',
-                xl: 'repeat(4, 1fr)',
-              },
-            }}
-          >
-            {sortedResources.map((resource) => (
-              <ResourceCard key={resource.id} resource={resource} tags={tags} />
-            ))}
-          </Box>
+          viewMode === 'list' ? (
+            <Stack spacing={1.5}>
+              {sortedResources.map((resource) => (
+                <ResourceCard key={resource.id} resource={resource} tags={tags} variant="list" />
+              ))}
+            </Stack>
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 2,
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, 1fr)',
+                  lg: 'repeat(3, 1fr)',
+                  xl: 'repeat(4, 1fr)',
+                },
+              }}
+            >
+              {sortedResources.map((resource) => (
+                <ResourceCard key={resource.id} resource={resource} tags={tags} variant="grid" />
+              ))}
+            </Box>
+          )
         ) : (
           <Paper sx={{ p: 8, textAlign: 'center' }}>
             <Box
