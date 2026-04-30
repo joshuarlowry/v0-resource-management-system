@@ -39,6 +39,10 @@ export default function HomePage() {
       .slice(0, 8)
   }, [tags, allResources])
 
+  const topCategories = useMemo(() => {
+    return categoriesWithResources.slice(0, 4)
+  }, [categoriesWithResources])
+
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
       carouselRef.current.scrollBy({
@@ -51,6 +55,75 @@ export default function HomePage() {
   return (
     <AppShell title="Home">
       <Stack spacing={4}>
+        {/* Category Filter Menu */}
+        {topCategories.length > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+              pb: 2,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Box
+              component={Link}
+              href="/resources"
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'accent.main',
+                fontWeight: 500,
+                textDecoration: 'none',
+                px: 1.5,
+                py: 0.75,
+                borderRadius: 0.5,
+                border: '1px solid',
+                borderColor: 'accent.main',
+                bgcolor: 'rgba(61, 91, 120, 0.08)',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  bgcolor: 'accent.main',
+                  color: 'common.white',
+                  borderColor: 'accent.main',
+                },
+              }}
+            >
+              All Categories
+            </Box>
+            {topCategories.map(({ tag }) => (
+              <Box
+                key={tag.id}
+                component={Link}
+                href={`/resources?tag=${tag.id}`}
+                sx={{
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: 'text.secondary',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: 0.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'text.primary',
+                    color: 'text.primary',
+                    bgcolor: 'rgba(0,0,0,0.02)',
+                  },
+                }}
+              >
+                {tag.name}
+              </Box>
+            ))}
+          </Box>
+        )}
+
         {/* Featured */}
         {featuredResources.length > 0 && (
           <Box component="section">
@@ -189,75 +262,26 @@ export default function HomePage() {
             </Box>
           </Stack>
 
-          {/* Category Filter Menu */}
-          {categoriesWithResources.length > 0 && (
-            <Box
+          <Box
+              component={Link}
+              href="/resources"
               sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 1,
-                mb: 3,
-                pb: 2,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'accent.main',
+                fontWeight: 500,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                '&:hover': { color: 'accent.light' },
               }}
             >
-              <Box
-                component={Link}
-                href="/resources"
-                sx={{
-                  fontSize: '0.75rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: 'accent.main',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  px: 1.5,
-                  py: 0.75,
-                  borderRadius: 0.5,
-                  border: '1px solid',
-                  borderColor: 'accent.main',
-                  bgcolor: 'rgba(61, 91, 120, 0.08)',
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: 'accent.main',
-                    color: 'common.white',
-                    borderColor: 'accent.main',
-                  },
-                }}
-              >
-                All Categories
-              </Box>
-              {categoriesWithResources.map(({ tag }) => (
-                <Box
-                  key={tag.id}
-                  component={Link}
-                  href={`/resources?tag=${tag.id}`}
-                  sx={{
-                    fontSize: '0.75rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    color: 'text.secondary',
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                    px: 1.5,
-                    py: 0.75,
-                    borderRadius: 0.5,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'text.primary',
-                      color: 'text.primary',
-                      bgcolor: 'rgba(0,0,0,0.02)',
-                    },
-                  }}
-                >
-                  {tag.name}
-                </Box>
-              ))}
+              See All
+              <ArrowRight size={12} />
             </Box>
-          )}
+          </Stack>
 
           <Box
             sx={{
