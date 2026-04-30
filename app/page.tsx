@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Paper from '@mui/material/Paper'
@@ -16,9 +17,22 @@ import { ResourceTypeIcon, getResourceTypeLabel } from '@/components/resources/r
 import { SearchInput } from '@/components/resources/search-input'
 
 export default function HomePage() {
+  const router = useRouter()
   const { getResourcesWithRelations, tags, getColorVariant } = useResources()
   const carouselRef = useRef<HTMLDivElement>(null)
   const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      router.push(`/resources?search=${encodeURIComponent(query)}`)
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(searchQuery)
+    }
+  }
 
   const allResources = getResourcesWithRelations()
 
@@ -61,6 +75,8 @@ export default function HomePage() {
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Search all resources..."
+          onKeyDown={handleSearchKeyDown}
+          onSubmit={() => handleSearch(searchQuery)}
         />
 
         {/* Category Filter Menu - Show All Categories */}
