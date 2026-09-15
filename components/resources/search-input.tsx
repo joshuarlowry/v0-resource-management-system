@@ -11,6 +11,8 @@ interface SearchInputProps {
   onChange: (value: string) => void
   placeholder?: string
   sx?: SxProps<Theme>
+  onKeyDown?: (e: React.KeyboardEvent) => void
+  onSubmit?: () => void
 }
 
 export function SearchInput({
@@ -18,11 +20,14 @@ export function SearchInput({
   onChange,
   placeholder = 'Search resources...',
   sx,
+  onKeyDown,
+  onSubmit,
 }: SearchInputProps) {
   return (
     <TextField
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onKeyDown={onKeyDown}
       placeholder={placeholder}
       size="small"
       fullWidth
@@ -50,3 +55,4 @@ export function SearchInput({
     />
   )
 }
+

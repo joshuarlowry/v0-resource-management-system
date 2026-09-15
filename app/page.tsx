@@ -1,7 +1,8 @@
 "use client"
 
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Paper from '@mui/material/Paper'
@@ -13,10 +14,25 @@ import { Star, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { useResources } from '@/lib/resources-context'
 import { AppShell } from '@/components/resources/app-shell'
 import { ResourceTypeIcon, getResourceTypeLabel } from '@/components/resources/resource-type-icon'
+import { SearchInput } from '@/components/resources/search-input'
 
 export default function HomePage() {
+  const router = useRouter()
   const { getResourcesWithRelations, tags, getColorVariant } = useResources()
   const carouselRef = useRef<HTMLDivElement>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      router.push(`/resources?search=${encodeURIComponent(query)}`)
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(searchQuery)
+    }
+  }
 
   const allResources = getResourcesWithRelations()
 
@@ -28,7 +44,7 @@ export default function HomePage() {
     [allResources]
   )
 
-  const categoriesWithResources = useMemo(() => {
+  const allCategoriesWithResources = useMemo(() => {
     return tags
       .map((tag) => {
         const tagResources = allResources.filter((r) => r.tags.includes(tag.id))
@@ -36,8 +52,11 @@ export default function HomePage() {
       })
       .filter((c) => c.count > 0)
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8)
   }, [tags, allResources])
+
+  const topCategories = useMemo(() => {
+    return allCategoriesWithResources.slice(0, 4)
+  }, [allCategoriesWithResources])
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
@@ -51,6 +70,84 @@ export default function HomePage() {
   return (
     <AppShell title="Home">
       <Stack spacing={4}>
+        {/* Search Bar */}
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search all resources..."
+          onKeyDown={handleSearchKeyDown}
+          onSubmit={() => handleSearch(searchQuery)}
+        />
+
+        {/* Category Filter Menu - Show All Categories */}
+        {allCategoriesWithResources.length > 0 && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+              pb: 2,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Box
+              component={Link}
+              href="/resources"
+              sx={{
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'accent.main',
+                fontWeight: 500,
+                textDecoration: 'none',
+                px: 1.5,
+                py: 0.75,
+                borderRadius: 0.5,
+                border: '1px solid',
+                borderColor: 'accent.main',
+                bgcolor: 'rgba(61, 91, 120, 0.08)',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  bgcolor: 'accent.main',
+                  color: 'common.white',
+                  borderColor: 'accent.main',
+                },
+              }}
+            >
+              All Categories
+            </Box>
+            {allCategoriesWithResources.map(({ tag }) => (
+              <Box
+                key={tag.id}
+                component={Link}
+                href={`/resources?tag=${tag.id}`}
+                sx={{
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: 'text.secondary',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: 0.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'text.primary',
+                    color: 'text.primary',
+                    bgcolor: 'rgba(0,0,0,0.02)',
+                  },
+                }}
+              >
+                {tag.name}
+              </Box>
+            ))}
+          </Box>
+        )}
+
         {/* Featured */}
         {featuredResources.length > 0 && (
           <Box component="section">
@@ -201,7 +298,7 @@ export default function HomePage() {
               },
             }}
           >
-            {categoriesWithResources.map(({ tag, resources: catResources, count }) => {
+            {topCategories.map(({ tag, resources: catResources, count }) => {
               const colorVariant = getColorVariant(tag.colorVariantId)
               const previewResources = catResources
                 .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
@@ -321,7 +418,7 @@ export default function HomePage() {
             })}
           </Box>
 
-          {categoriesWithResources.length === 0 && (
+          {topCategories.length === 0 && (
             <Paper sx={{ p: 6, textAlign: 'center' }}>
               <Typography variant="overline" sx={{ color: 'text.secondary' }}>
                 No categories with resources yet
